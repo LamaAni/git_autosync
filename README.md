@@ -29,17 +29,17 @@ source "[somepath]/git_autosync" --as-lib
 
 argument name | description | default value
 ---|---|---
-[sync-path]     |The path to the repo. | current folder
--r --repo-url   |The repo url, example: `git@github.com:LamaAni/git_autosync.git`  | the repo in the sync-path
--b --branch     |The name of the branch | the active branch in the sync-path
--n --max-times  |Max Number of sync times. -1 for infinity. | -1
--i --interval   |The time interval to use in seconds | 5 seconds
--a --async      |Syncs in background after validating the repo connection | false
---sync-command  |The git sync command to use. | git pull
---as-lib        |Load the current file as a library function. Dose not allow any other arguments. | false
--h --help       |Help menu
+[sync-path]     | The path to the repo. | current folder
+-r, --repo-url   | The repo url, example: `git@github.com:LamaAni/git_autosync.git`  | the repo in the sync-path
+-b, --branch     | The name of the branch | the active branch in the sync-path
+-n, --max-times  | Max Number of sync times. -1 for infinity. | -1
+-i, --interval   | The time interval to use in seconds | 5 seconds
+-a, --async      | Syncs in background after validating the repo connection | true if flag exists
+--sync-command  | The git sync command to use. | git pull
+--as-lib        | Load the current file as a library function. Dose not allow any other arguments. | true if flag exists
+-h, --help       | Help menu
 
-env name | description | default value
+Env name | description | default value
 ---|---|---
 GIT_AUTOSYNC_LOGPREFEX | The log prefex for git_autosync. Will be printed before and sync logs. | GIT_AUTOSYNC:
 
