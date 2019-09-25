@@ -36,7 +36,7 @@ ENVS:
         local error="$1"
         local txt="$2"
 
-        if [[ ! "$error" ~= "^[0-9]+$" ]]; then
+        if ! [[ "$error" =~ ^[0-9]+$ ]] ; then
             assert 99 "The error value (\$1) for the assert function must be a number." || return $?
         fi 
 
