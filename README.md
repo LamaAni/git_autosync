@@ -49,3 +49,7 @@ Mostly, I use this script to sync my repo to remote machines, when deploying a w
 some sorts. There are more agile and better solutions, but I find that this simple approach is very powerful.
 
 If there is more interest in this script I will add installs, releases and requested functionality.
+
+# Rights
+
+All rights under the....
