@@ -146,7 +146,7 @@ ENVS:
         local last_error=$?
 
         back_to_working_dir || return $?
-        assert sync_error "Failed sync from remote using command '$sync_command'" || return $?
+        assert last_error "Failed sync from remote using command '$sync_command'" || return $?
     }
 
     function get_change_list() {
