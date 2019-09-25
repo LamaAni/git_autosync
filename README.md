@@ -1,4 +1,4 @@
-# GitAutosync
+# git_autosync script
 
 A bash script for autosync of a git repo to a local machine. Has internal folders.
 
@@ -16,7 +16,7 @@ or app, and is based on bash and git commands alone.
 bash> git_autosync [args] ...
 ```
 
-# use as a source library
+# Use as a source library
 ```shell
 #!/usr/bin/env bash
 # notice no arguments passed.
