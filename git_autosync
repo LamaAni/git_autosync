@@ -36,17 +36,17 @@ ENVS:
         local error="$1"
         local txt="$2"
 
-        if ! [[ "$error" =~ ^[0-9]+$ ]] ; then
+        if ! [[ "$error" =~ ^[0-9]+$ ]]; then
             assert 99 "The error value (\$1) for the assert function must be a number." || return $?
-        fi 
+        fi
 
         if [ "$error" -ne 0 ]; then
             log "when running ${BASH_SOURCE[1]} ${FUNCNAME[1]}, code: $error" "ERROR"
             log "Message: $txt" "ERROR"
             if [ ${#FUNCNAME[@]} -gt 2 ]; then
                 echo "Stack trace:"
-                for ((i=1;i<${#FUNCNAME[@]}-1;i++)); do
-                    log "$i: ${BASH_SOURCE[$i+1]}:${BASH_LINENO[$i]} ${FUNCNAME[$i]}(...)"
+                for ((i = 1; i < ${#FUNCNAME[@]} - 1; i++)); do
+                    log "$i: ${BASH_SOURCE[$i + 1]}:${BASH_LINENO[$i]} ${FUNCNAME[$i]}(...)"
                 done
             fi
         fi
@@ -151,14 +151,12 @@ ENVS:
 
     function sync() {
         to_repo_dir || return $?
-
         log "Invoking sync with '$sync_command'..."
-        eval "$sync_command"
+        eval "$sync_command" | xargs -L 1 log
         local last_error=$?
 
         back_to_working_dir || return $?
-        assert last_error "Failed sync from remote using command '$sync_command'" || return $?
-
+        assert $last_error "Failed sync from remote using command '$sync_command'" || return $?
         return 0
     }
 
@@ -214,7 +212,7 @@ ENVS:
                 assert $? "Failed to sync. Re-attempt in $interval seconds" || continue
                 log "Sync complete"
             fi
-            
+
             if [ $max_times -gt 0 ] && [ $max_times -gt $sync_count ]; then
                 break
             fi
