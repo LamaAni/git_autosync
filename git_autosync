@@ -152,7 +152,8 @@ ENVS:
     function sync() {
         to_repo_dir || return $?
 
-        $sync_command
+        log "Invoking sync with '$sync_command'..."
+        eval "$sync_command"
         local last_error=$?
 
         back_to_working_dir || return $?
@@ -209,9 +210,8 @@ ENVS:
             if [ -n "$change_list" ]; then
                 log "Repo has changed:"
                 echo "$change_list"
-                log "calling sync..."
                 sync
-                assert $? "Failed to sync. Re-attempt in $interval" || continue
+                assert $? "Failed to sync. Re-attempt in $interval seconds" || continue
                 log "Sync complete"
             fi
             
