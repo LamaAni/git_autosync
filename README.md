@@ -50,6 +50,8 @@ some sorts. There are more agile and better solutions, but I find that this simp
 
 If there is more interest in this script I will add installs, releases and requested functionality.
 
-# Rights
+# Licence
 
-All rights under the....
+Copyright ©
+`Zav Shotan` and other [contributors](https://github.com/LamaAni/git_autosync/graphs/contributors).
+It is free software, released under the MIT licence, and may be redistributed under the terms specified in `LICENSE`.
