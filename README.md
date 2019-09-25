@@ -6,8 +6,6 @@ The scripts allows for the continues update of a git repo, to a local folder, wi
 minimal time delay of 1 second. This script dose not require the use of a git repo plugin
 or app, and is based on bash and git commands alone.
 
-test
-
 # Requirements
 1. [bash shell](https://en.wikipedia.org/wiki/Bash_(Unix_shell))
 2. [git](https://git-scm.com/)
