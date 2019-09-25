@@ -6,6 +6,8 @@ The scripts allows for the continues update of a git repo, to a local folder, wi
 minimal time delay of 1 second. This script dose not require the use of a git repo plugin
 or app, and is based on bash and git commands alone.
 
+#### Contributors are welcome :)
+
 # Requirements
 1. [bash shell](https://en.wikipedia.org/wiki/Bash_(Unix_shell))
 2. [git](https://git-scm.com/)
@@ -40,3 +42,10 @@ argument name | description | default value
 env name | description | default value
 ---|---|---
 GIT_AUTOSYNC_LOGPREFEX | The log prefex for git_autosync. Will be printed before and sync logs. | GIT_AUTOSYNC:
+
+# Notes
+
+Mostly, I use this script to sync my repo to remote machines, when deploying a web service of 
+some sorts. There are more agile and better solutions, but I find that this simple approach is very powerful.
+
+If there is more interest in this script I will add installs, releases and requested functionality.
