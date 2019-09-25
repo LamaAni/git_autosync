@@ -210,7 +210,7 @@ ENVS:
                 echo "$change_list"
                 sync
                 assert $? "Failed to sync. Re-attempt in $interval seconds" || continue
-                log "Sync complete"
+                log "Sync complete @ $(date)"
             fi
 
             if [ $max_times -gt 0 ] && [ $max_times -gt $sync_count ]; then
