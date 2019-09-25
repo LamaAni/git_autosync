@@ -36,9 +36,19 @@ ENVS:
         local error="$1"
         local txt="$2"
 
+        if [[ ! "$error" ~= "^[0-9]+$" ]]; then
+            assert 99 "The error value (\$1) for the assert function must be a number." || return $?
+        fi 
+
         if [ "$error" -ne 0 ]; then
             log "when running ${BASH_SOURCE[1]} ${FUNCNAME[1]}, code: $error" "ERROR"
             log "Message: $txt" "ERROR"
+            if [ ${#FUNCNAME[@]} -gt 2 ]; then
+                echo "Stack trace:"
+                for ((i=1;i<${#FUNCNAME[@]}-1;i++)); do
+                    log "$i: ${BASH_SOURCE[$i+1]}:${BASH_LINENO[$i]} ${FUNCNAME[$i]}(...)"
+                done
+            fi
         fi
 
         return "$error"
