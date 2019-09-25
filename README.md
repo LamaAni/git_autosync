@@ -1,6 +1,6 @@
 # git_autosync script
 
-A bash script for autosync of a git repo to a local machine. Has internal folders.
+A bash script for autosync of a git repo to a local machine.
 
 The scripts allows for the continues update of a git repo, to a local folder, with a
 minimal time delay of 1 second. This script dose not require the use of a git repo plugin
