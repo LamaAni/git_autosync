@@ -157,6 +157,8 @@ ENVS:
 
         back_to_working_dir || return $?
         assert last_error "Failed sync from remote using command '$sync_command'" || return $?
+
+        return 0
     }
 
     function get_change_list() {
@@ -173,12 +175,16 @@ ENVS:
             if [ -n "$file_difs" ]; then
                 echo "$file_difs"
             fi
+
+            return 0
         }
 
         __internal
-        local last_error=$?
+        local last_error="$?"
         back_to_working_dir || return $?
         assert $last_error "Failed to get change list." || return $?
+
+        return 0
     }
 
     # first attempt to pull
