@@ -152,7 +152,7 @@ ENVS:
     function sync() {
         to_repo_dir || return $?
         log "Invoking sync with '$sync_command'..."
-        eval "$sync_command" | xargs -L 1 log
+        eval "$sync_command"
         local last_error=$?
 
         back_to_working_dir || return $?
