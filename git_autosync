@@ -24,7 +24,7 @@ ENVS:
                             Allowes for stack tracing.
 "
     # helper methods
-    : ${GIT_AUTOSYNC_LOGPREFEX:="GITSYNC:"}
+    : ${GIT_AUTOSYNC_LOGPREFEX:="GIT_AUTOSYNC:"}
 
     function log() {
         local type="$2"

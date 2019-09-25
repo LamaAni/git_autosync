@@ -36,3 +36,7 @@ argument name | description | default value
 --sync-command  |The git sync command to use. | git pull
 --as-lib        |Load the current file as a library function. Dose not allow any other arguments. | false
 -h --help       |Help menu
+
+env name | description | default value
+---|---|---
+GIT_AUTOSYNC_LOGPREFEX | The log prefex for git_autosync. Will be printed before and sync logs. | GIT_AUTOSYNC:
