@@ -25,6 +25,14 @@ bash> git_autosync [args] ...
 source "[somepath]/git_autosync" --as-lib
 ```
 
+# Install
+
+## using curl
+```shell
+
+```
+
+
 # Usage and arguments
 
 argument name | description | default value
