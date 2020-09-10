@@ -7,17 +7,16 @@ function git_auto_sync() {
 OR AS LIB: source git_autosync --as-lib
 ARGS:
     [sync-path]     The path to the repo. (Defualts to current folder)
-
     -r --repo-url   The repo url (defaults to folder git repo if exists)
     -b --branch     The name of the branch (defaults to folder git branch if exists)
     -n --max-times  Max Number of sync times. -1 for infinity. (default -1)
     -i --interval   The time interval to use in seconds (defaults to 5)
-    -a --async      If flag exists, syncs in background after first successful sync
     --sync-command  The git sync command to use. (defaults to 'git pull')
     
     --as-lib        Load the current file as a library function. Dose not allow any other
                     arguments.
-
+FLAGS:
+    -a --async      If flag exists, syncs in background after first successful sync
     -h --help       Show this help menu.
 ENVS:
     GIT_AUTOSYNC_LOGPREFEX  The git sync log prefex, (apperas before the log),
