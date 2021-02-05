@@ -1,5 +1,5 @@
 #!/bin/bash
-type zbash_commons
+type zbash_commons &>2
 if [ "$?" -eq 0 ]; then
   # in case zbash_commons is installed.
   source zbash_commons

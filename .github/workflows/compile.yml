@@ -27,7 +27,7 @@ jobs:
         id: compile
         run: bash src/ci/compile_scripts
         env:
-          OUTPUT: "git_autosync.sh"
+          OUTPUT_FILE: "git_autosync.sh"
 
       - name: "Release: Upload files"
         if: ${{ steps.args.outputs.is_release=='true' }}
