@@ -1,0 +1,23 @@
+#!/bin/bash
+: "${SCRIPTS_PATH:="$(dirname "${BASH_SOURCE[0]}")/.."}"
+
+# Loading the compile scripts
+source "$SCRIPTS_PATH/load"
+
+: "${OUTPUT="$1"}"
+: "${OUTPUT="$(mktemp /tmp/zbash-commons-compiled-XXXXXXX.sh)"}"
+log:sep "Compiling sources to $OUTPUT"
+
+function compile_scripts() {
+  local compiled=()
+  for file in $SCRIPTS_PATH/scripts/*; do
+    compiled+=("$(cat $file)")
+    assert $? "Error while loading lib file: $file" || return $?
+  done
+  printf "%s" "$(join_by $'\n' "${compiled[@]}")"
+}
+
+compile_scripts >$OUTPUT
+assert $? "Failed to compile scripts" || exit $?
+
+log "Compilation complete with $(wc -l $OUTPUT) lines"

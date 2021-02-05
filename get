@@ -1,0 +1,16 @@
+#!/bin/bash
+VERSION="$1"
+: "${VERSION:="latest"}"
+
+REPO_RAW_URL="https://github.com/LamaAni/git_autosync"
+
+if [ "$VERSION" != "latest" ]; then
+    URL="$REPO_RAW_URL/releases/download/$VERSION"
+else
+    URL="$REPO_RAW_URL/releases/latest/download"
+fi
+
+URL="$URL/git_autosync.sh?v_$(date +"%S")=$RANDOM"
+
+SCRIPT="$(curl -sL "$URL")"
+printf "%s" "$SCRIPT"

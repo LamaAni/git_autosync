@@ -1,0 +1,26 @@
+#!/bin/bash
+: "${ZBASH_COMMONS_SRC_PATH:="$(dirname "${BASH_SOURCE[0]}")"}"
+
+function load_core_script() {
+  source "$ZBASH_COMMONS_SRC_PATH/scripts/core.sh"
+  code=$?
+  if [ $code -ne 0 ]; then
+    echo "zbash-commons: Error loading core script."
+  fi
+  return $code
+}
+
+function load_scripts() {
+  for file in $ZBASH_COMMONS_SRC_PATH/scripts/*; do
+    source "$file"
+    assert $? "Error while loading lib file: $file" || exit $?
+  done
+}
+
+ZBASH_COMMONS_SRC_PATH="$(realpath "$ZBASH_COMMONS_SRC_PATH")"
+export ZBASH_COMMONS_SRC_PATH
+
+# -----------------------
+# Loading
+
+load_core_script && load_scripts

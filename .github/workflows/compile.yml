@@ -1,0 +1,38 @@
+name: "Compile scripts"
+
+on:
+  pull_request:
+    branches:
+      - "master"
+  release:
+    branches:
+      - "master"
+    types:
+      - created
+  push:
+    branches:
+      - master
+jobs:
+  compile_scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Read commit args"
+        id: args
+        uses: LamaAni/parse-commit-args-action@master
+
+      - name: "Checkout the code"
+        uses: actions/checkout@v2
+
+      - name: "Compile the code"
+        id: compile
+        run: bash src/ci/compile_scripts
+        env:
+          OUTPUT: "git_autosync.sh"
+
+      - name: "Release: Upload files"
+        if: ${{ steps.args.outputs.is_release=='true' }}
+        uses: AButler/upload-release-assets@v2.0
+        with:
+          files: "git_autosync.sh"
+          release-tag: "${{steps.args.outputs.version}}"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
