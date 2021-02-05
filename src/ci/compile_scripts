@@ -2,7 +2,7 @@
 : "${SCRIPTS_PATH:="$(dirname "${BASH_SOURCE[0]}")/.."}"
 
 # Loading the compile scripts
-source "$SCRIPTS_PATH/load"
+source "$SCRIPTS_PATH/load" || exit $?
 
 : "${OUTPUT="$1"}"
 : "${OUTPUT="$(mktemp /tmp/zbash-commons-compiled-XXXXXXX.sh)"}"
