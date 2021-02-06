@@ -1,172 +1,191 @@
 #!/usr/bin/env bash
 
-# Script to auto sync a git repo dag.
-function git_auto_sync() {
-    local help_info="USAGE: git_autosync [sync-path]
-OR AS LIB: source git_autosync --as-lib
+HELP="
+ 
+Start an autosync proecss, with a folder and an autosync path.
+ 
+USAGE: git_autosync [sync-path]
+INPUTS:
+    [sync-path] The path to the repo. (Defualts to current folder)
 ARGS:
-    [sync-path]     The path to the repo. (Defualts to current folder)
-    -r --repo-url   The repo url (defaults to folder git repo if exists)
-    -b --branch     The name of the branch (defaults to folder git branch if exists)
-    -n --max-times  Max Number of sync times. -1 for infinity. (default -1)
-    -i --interval   The time interval to use in seconds (defaults to 5)
-    --sync-command  The git sync command to use. (defaults to 'git pull')
-    
-    --as-lib        Load the current file as a library function. Dose not allow any other
-                    arguments.
+    -r | --repo-url     The repo url (defaults to folder git repo if exists)
+    -b | --branch       The name of the branch (defaults to folder git branch if exists)
+    -n | --max-times    Max Number of sync times. -1 for infinity. (default -1)
+    -i | --interval     The time GIT_AUTOSYNC_INTERVAL to use in seconds (defaults to 5)
+    --ssh-key           The ssh key to use when connecting to the server.
+    --ssh-key-path      The path to the ssh key file.
+    --sync-command      The git sync command to use. (defaults to 'git pull')
 FLAGS:
-    -a --async      If flag exists, syncs in background after first successful sync
-    -h --help       Show this help menu.
+    -a --async  If flag exists, syncs in background after first successful sync
+    -h --help   Show this help menu.
+    --no-clone  Do not clone the repo if dose not exist.
 ENVS:
     GIT_AUTOSYNC_LOGPREFEX  The git sync log prefex, (apperas before the log),
                             Allowes for stack tracing.
 "
-    # helper methods
-    : ${GIT_AUTOSYNC_LOGPREFEX:="GIT_AUTOSYNC:"}
 
-    function log() {
-        local type="$2"
-        : ${type:="LOG"}
-        echo "$GIT_AUTOSYNC_LOGPREFEX:$type: $1"
-    }
+: "${GIT_AUTOSYNC_REPO_LOCAL_PATH:=""}"
+: "${GIT_AUTOSYNC_REPO_URL:=""}"
+: "${GIT_AUTOSYNC_SSH_KEY:=""}"
+: "${GIT_AUTOSYNC_SSH_KEY_PATH:=""}"
+: "${GIT_AUTOSYNC_REPO_BRANCH:=""}"
+: "${GIT_AUTOSYNC_MAX_SYNC_RUN_COUNT:=-1}"
+: "${GIT_AUTOSYNC_INTERVAL:=5}"
+: "${GIT_AUTOSYNC_SYNC_COMMAND:="git pull"}"
+: "${GIT_AUTOSYNC_RUN_ASYNC:=0}"
+: "${GIT_AUTOSYNC_RUN_DO_CLONE:=1}"
 
-    function assert() {
-        local error="$1"
-        local txt="$2"
-
-        if ! [[ "$error" =~ ^[0-9]+$ ]]; then
-            assert 99 "The error value (\$1) for the assert function must be a number." || return $?
-        fi
-
-        if [ "$error" -ne 0 ]; then
-            log "when running ${BASH_SOURCE[1]} ${FUNCNAME[1]}, code: $error" "ERROR"
-            log "Message: $txt" "ERROR"
-            if [ ${#FUNCNAME[@]} -gt 2 ]; then
-                echo "Stack trace:"
-                for ((i = 1; i < ${#FUNCNAME[@]} - 1; i++)); do
-                    log "$i: ${BASH_SOURCE[$i + 1]}:${BASH_LINENO[$i]} ${FUNCNAME[$i]}(...)"
-                done
-            fi
-        fi
-
-        return "$error"
-    }
-
-    # variables
-    local repo_local_path=""
-    local repo_url=""
-    local repo_branch=""
-    local max_times=-1
-    local interval=5
-    local async=0
-    local sync_command="git pull"
-
-    # loading varaibles.
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            -h | --help)
-                echo "$help_info"
-                exit 0
-                ;;
-            -r | --repo-url)
-                shift
-                repo_url="$1"
-                ;;
-            -b | --branch)
-                shift
-                repo_branch="$1"
-                ;;
-            -n | --max-times)
-                shift
-                max_times=$1
-                ;;
-            -i | --interval)
-                shift
-                interval="$1"
-                ;;
-            -a | --async)
-                async=1
-                ;;
-            --sync-command)
-                shift
-                sync_command="$1"
-                ;;
-            --as-lib)
-                assert 2 "git_auto_sync cannot be both called as a library and have command args." || return $?
-                ;;
-            -*)
-                assert 2 "Unknown identifier $1" || return $?
-                ;;
-            *)
-                if [ -z "$repo_local_path" ]; then
-                    repo_local_path="$1"
-                else
-                    assert 2 "Unknown positional parameter (or command) $1" || return $?
-                fi
-                ;;
-        esac
+# loading varaibles.
+while [ $# -gt 0 ]; do
+    case "$1" in
+    -h | --help)
+        log:help "$HELP"
+        exit 0
+        ;;
+    -r | --repo-url)
         shift
-    done
+        GIT_AUTOSYNC_REPO_URL="$1"
+        ;;
+    -b | --branch)
+        shift
+        GIT_AUTOSYNC_REPO_BRANCH="$1"
+        ;;
+    -n | --max-times)
+        shift
+        GIT_AUTOSYNC_MAX_SYNC_RUN_COUNT=$1
+        ;;
+    -i | --GIT_AUTOSYNC_INTERVAL)
+        shift
+        GIT_AUTOSYNC_INTERVAL="$1"
+        ;;
+    -a | --async)
+        GIT_AUTOSYNC_RUN_ASYNC=1
+        ;;
+    --no-clone)
+        GIT_AUTOSYNC_RUN_DO_CLONE=0
+        ;;
+    --sync-command)
+        shift
+        GIT_AUTOSYNC_SYNC_COMMAND="$1"
+        ;;
+    --ssh-key)
+        shift
+        GIT_AUTOSYNC_SSH_KEY="$1"
+        ;;
+    --ssh-key-path)
+        shift
+        GIT_AUTOSYNC_SSH_KEY_PATH="$1"
+        ;;
+    -*)
+        assert 2 "Unknown identifier $1" || return $?
+        ;;
+    *)
+        if [ -z "$GIT_AUTOSYNC_REPO_LOCAL_PATH" ]; then
+            GIT_AUTOSYNC_REPO_LOCAL_PATH="$1"
+        else
+            assert 2 "Unknown positional parameter (or command) $1" || return $?
+        fi
+        ;;
+    esac
+    shift
+done
 
-    if [ -z "$repo_local_path" ]; then
-        repo_local_path="."
+TEMP_FILES=()
+
+function to_sync_dir() {
+    GIT_AUTOSYNC_LAST_WORKING_DIR="$PWD"
+    cd "$GIT_AUTOSYNC_REPO_LOCAL_PATH"
+    assert $? "Failed to enter directory $GIT_AUTOSYNC_REPO_LOCAL_PATH" || return $?
+}
+
+function back_to_working_dir() {
+    cd "$GIT_AUTOSYNC_LAST_WORKING_DIR"
+    assert $? "Failed to enter directory $GIT_AUTOSYNC_LAST_WORKING_DIR" || return $?
+}
+
+function prepare() {
+    if [ -n "$GIT_AUTOSYNC_SSH_KEY" ] && [ -z "$GIT_AUTOSYNC_SSH_KEY_PATH" ]; then
+        export GIT_AUTOSYNC_SSH_KEY_PATH="$(mktemp /tmp/git_autosync_ssh_key-XXXXXXXX)"
+        assert $? "Faild to create ssh key tempfile"
+        TEMP_FILES+=("$GIT_AUTOSYNC_SSH_KEY_PATH")
+    fi
+    : "${GIT_SSH_COMMAND:="ssh"}"
+    if [ -n "$GIT_AUTOSYNC_SSH_KEY_PATH" ]; then
+        GIT_SSH_COMMAND="$GIT_SSH_COMMAND -i '$GIT_AUTOSYNC_SSH_KEY_PATH'"
     fi
 
-    repo_local_path="$(realpath "$repo_local_path")"
-    assert $? "Failed to resolve local path: $repo_local_path" || return $?
+    if [ -z "$GIT_AUTOSYNC_REPO_LOCAL_PATH" ]; then
+        GIT_AUTOSYNC_REPO_LOCAL_PATH="."
+    fi
 
-    # this may be changed at each iteration.
-    local current_working_dir="$PWD"
+    GIT_AUTOSYNC_REPO_LOCAL_PATH="$(realpath "$GIT_AUTOSYNC_REPO_LOCAL_PATH")"
+    assert $? "Failed to resolve local path: $GIT_AUTOSYNC_REPO_LOCAL_PATH" || return $?
 
-    function to_repo_dir() {
-        current_working_dir="$PWD"
-        cd "$repo_local_path"
-        assert $? "Failed to enter directory $repo_local_path" || return $?
-    }
+    export GIT_SSH_COMMAND
+    export GIT_AUTOSYNC_REPO_LOCAL_PATH
 
-    function back_to_working_dir() {
-        cd "$current_working_dir"
-        assert $? "Failed to enter directory $current_working_dir" || return $?
-    }
-
-    to_repo_dir || return $?
+    to_sync_dir || return $?
 
     # adding default params.
-    if [ -z "$repo_url" ]; then
-        repo_url="$(git config --get remote.origin.url)"
-        if [ -z "$repo_url" ]; then
+    if [ -z "$GIT_AUTOSYNC_REPO_URL" ]; then
+        GIT_AUTOSYNC_REPO_URL="$(git config --get remote.origin.url)"
+        if [ -z "$GIT_AUTOSYNC_REPO_URL" ]; then
             assert 2 "Failed to retrive git origin url" || return $?
         fi
     fi
-    if [ -z "$repo_branch" ]; then
-        repo_branch="$(git rev-parse --abbrev-ref HEAD)"
-        if [ -z "$repo_branch" ]; then
-            assert 2 "Failed to retrive git branch name" || return $?
+
+    if [ -z "$GIT_AUTOSYNC_REPO_BRANCH" ]; then
+        GIT_AUTOSYNC_REPO_BRANCH="$(git 2>/dev/null rev-parse --abbrev-ref HEAD)"
+        if [ -z "$GIT_AUTOSYNC_REPO_BRANCH" ]; then
+            GIT_AUTOSYNC_REPO_BRANCH="master"
         fi
     fi
 
     back_to_working_dir || return $?
+    export GIT_AUTOSYNC_REPO_BRANCH
+    export GIT_AUTOSYNC_REPO_URL
+}
+
+function check_and_clone() {
+    to_sync_dir || return $?
+    git 2>/dev/null 1>&2 rev-parse --abbrev-ref
+    local is_git_repo="$?"
+    if [ $is_git_repo -ne 0 ] && [ "$GIT_AUTOSYNC_RUN_DO_CLONE" -eq 1 ]; then
+        log "cloning into $GIT_AUTOSYNC_REPO_URL $GIT_AUTOSYNC_REPO_BRANCH -> $GIT_AUTOSYNC_REPO_LOCAL_PATH"
+        git clone -b "$GIT_AUTOSYNC_REPO_BRANCH" "$GIT_AUTOSYNC_REPO_URL" "$GIT_AUTOSYNC_REPO_LOCAL_PATH"
+        assert $? "Failed to clone" || return $?
+    elif [ $is_git_repo -ne 0 ]; then
+        assert 2 "Cannot initialize, location is not a repository and cannot clone" || return $?
+    fi
+    back_to_working_dir || return $?
+}
+
+# Script to auto sync a git repo dag.
+function sync() {
+
+    # this may be changed at each iteration.
+    local GIT_AUTOSYNC_LAST_WORKING_DIR="$PWD"
 
     function sync() {
-        to_repo_dir || return $?
-        log "Invoking sync with '$sync_command'..."
-        eval "$sync_command"
+        to_sync_dir || return $?
+        log "Invoking sync with '$GIT_AUTOSYNC_SYNC_COMMAND'..."
+        eval "$GIT_AUTOSYNC_SYNC_COMMAND"
         local last_error=$?
 
         back_to_working_dir || return $?
-        assert $last_error "Failed sync from remote using command '$sync_command'" || return $?
+        assert $last_error "Failed sync from remote using command '$GIT_AUTOSYNC_SYNC_COMMAND'" || return $?
         return 0
     }
 
     function get_change_list() {
-        to_repo_dir || return $?
+        to_sync_dir || return $?
 
         function __internal() {
             remote_update_log="$(git remote update)"
             newline=$'\n'
             assert "$?" "Failed to update from remote: $newline$remote_update_log $newline Proceed to next attempt" || return 0
 
-            file_difs="$(git diff "$repo_branch" "origin/$repo_branch" --name-only)"
+            file_difs="$(git diff "$GIT_AUTOSYNC_REPO_BRANCH" "origin/$GIT_AUTOSYNC_REPO_BRANCH" --name-only)"
             assert $? "Field to execute git diff: $file_difs" || return $?
 
             if [ -n "$file_difs" ]; then
@@ -186,20 +205,20 @@ ENVS:
 
     # first attempt to pull
     get_change_list
-    assert $? "Failed to initialize remote repo autosync @ $repo_url/$repo_branch to $repo_local_path" || return $?
+    assert $? "Failed to initialize remote repo autosync @ $GIT_AUTOSYNC_REPO_URL $GIT_AUTOSYNC_REPO_BRANCH to $GIT_AUTOSYNC_REPO_LOCAL_PATH" || return $?
 
     local last_error=0
 
     function sync_loop() {
-        log "Starting sync: $repo_url/$repo_branch -> $repo_local_path"
+        log "Starting sync: $GIT_AUTOSYNC_REPO_URL/$GIT_AUTOSYNC_REPO_BRANCH -> $GIT_AUTOSYNC_REPO_LOCAL_PATH"
         local sync_count=0
         while true; do
             change_list="$(get_change_list)"
             last_error=$?
 
             if [ $last_error -ne 0 ]; then
-                log "ERROR: could not get change list. Re-attempting in $interval [sec]."
-                sleep "$interval"
+                log "ERROR: could not get change list. Re-attempting in $GIT_AUTOSYNC_INTERVAL [sec]."
+                sleep "$GIT_AUTOSYNC_INTERVAL"
                 continue
             fi
 
@@ -207,29 +226,39 @@ ENVS:
                 log "Repo has changed:"
                 echo "$change_list"
                 sync
-                assert $? "Failed to sync. Re-attempt in $interval seconds" || continue
+                assert $? "Failed to sync. Re-attempt in $GIT_AUTOSYNC_INTERVAL seconds" || continue
                 log "Sync complete @ $(date)"
             fi
 
-            if [ $max_times -gt 0 ] && [ $max_times -gt $sync_count ]; then
+            if [ $GIT_AUTOSYNC_MAX_SYNC_RUN_COUNT -gt 0 ] && [ $GIT_AUTOSYNC_MAX_SYNC_RUN_COUNT -gt $sync_count ]; then
                 break
             fi
             sync_count=$((sync_count + 1))
-            sleep "$interval"
+            sleep "$GIT_AUTOSYNC_INTERVAL"
         done
 
         log "Sync stopped"
     }
 
     # start loop.
-    if [ $async -eq 1 ]; then
+    if [ $GIT_AUTOSYNC_RUN_ASYNC -eq 1 ]; then
         sync_loop &
     else
         sync_loop
     fi
 }
 
+function cleanup() {
+    local code="$?"
+    if [ $GIT_AUTOSYNC_RUN_ASYNC -ne 1 ]; then
+        for file in "${TEMP_FILES[@]}"; do
+            rm -rf "$file"
+            warn $? "Failed to remove temp @ $file"
+        done
+    fi
+
+    return "$code"
+}
+
 # if not as library then use invoke the function.
-if [ "$1" != "--as-lib" ]; then
-    git_auto_sync "$@"
-fi
+prepare && check_and_clone && sync && cleanup $?

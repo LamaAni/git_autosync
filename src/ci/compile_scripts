@@ -7,6 +7,7 @@ if [ $? -ne 0 ]; then
   ZBASH_COMMONS="$(bash -c "$ZBASH_COMMONS_GET_SCRIPT")"
   eval "$ZBASH_COMMONS"
 else
+  ZBASH_COMMONS="$(cat "$(which zbash_commons))")"
   source zbash_commons
 fi
 
@@ -16,7 +17,7 @@ fi
 log:sep "Compiling sources to $OUTPUT_FILE"
 
 function compile_scripts() {
-  local compiled=()
+  local compiled=("$ZBASH_COMMONS")
   for file in $SCRIPTS_PATH/scripts/*; do
     compiled+=("$(cat $file)")
     assert $? "Error while loading lib file: $file" || return $?
@@ -24,8 +25,6 @@ function compile_scripts() {
   printf "%s" "$(join_by $'\n' "${compiled[@]}")"
 }
 
-compile_scripts >"$OUTPUT_FILE"
-assert $? "Failed to compile scripts" || exit $?
-
-log "Compilation complete with $(wc -l "$OUTPUT_FILE") lines"
-log "compiled @ $OUTPUT_FILE"
+compile_scripts >|"$OUTPUT_FILE"
+assert $? "Failed to compile scripts" &&
+  log "Compilation complete with $(wc -l "$OUTPUT_FILE")"
