@@ -121,6 +121,9 @@ function prepare() {
     GIT_AUTOSYNC_REPO_LOCAL_PATH="$(realpath "$GIT_AUTOSYNC_REPO_LOCAL_PATH")"
     assert $? "Failed to resolve local path: $GIT_AUTOSYNC_REPO_LOCAL_PATH" || return $?
 
+    mkdir -p "$GIT_AUTOSYNC_REPO_LOCAL_PATH"
+    assert $? "Fialed to validate target directory" || return $?
+
     export GIT_SSH_COMMAND
     export GIT_AUTOSYNC_REPO_LOCAL_PATH
 
