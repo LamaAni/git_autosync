@@ -16,9 +16,11 @@ ARGS:
     --ssh-key-path      The path to the ssh key file.
     --sync-command      The git sync command to use. (defaults to 'git pull')
 FLAGS:
-    -a --async  If flag exists, syncs in background after first successful sync
-    -h --help   Show this help menu.
-    --no-clone  Do not clone the repo if dose not exist.
+    -a --async      If flag exists, syncs in background after first successful sync
+    -h --help       Show this help menu.
+    --no-clone      Do not clone the repo if dose not exist.
+    --check-hosts   Disable to auto allow all hosts. Removes man in the middle vonrability,
+                    but will require you to update the known_hosts.
 ENVS:
     GIT_AUTOSYNC_LOGPREFEX  The git sync log prefex, (apperas before the log),
                             Allowes for stack tracing.
@@ -33,6 +35,7 @@ ENVS:
 : "${GIT_AUTOSYNC_INTERVAL:=5}"
 : "${GIT_AUTOSYNC_SYNC_COMMAND:="git pull"}"
 : "${GIT_AUTOSYNC_RUN_ASYNC:=0}"
+: "${GIT_AUTOSYNC_CHECK_HOSTS:=0}"
 : "${GIT_AUTOSYNC_RUN_DO_CLONE:=1}"
 
 # loading varaibles.
@@ -114,6 +117,10 @@ function prepare() {
         GIT_SSH_COMMAND="$GIT_SSH_COMMAND -i '$GIT_AUTOSYNC_SSH_KEY_PATH'"
     fi
 
+    if [ "$GIT_AUTOSYNC_CHECK_HOSTS" -eq 0 ]; then
+        GIT_SSH_COMMAND="$GIT_SSH_COMMAND -o StrictHostKeyChecking=no"
+    fi
+
     if [ -z "$GIT_AUTOSYNC_REPO_LOCAL_PATH" ]; then
         GIT_AUTOSYNC_REPO_LOCAL_PATH="."
     fi
@@ -123,9 +130,6 @@ function prepare() {
 
     mkdir -p "$GIT_AUTOSYNC_REPO_LOCAL_PATH"
     assert $? "Fialed to validate target directory" || return $?
-
-    export GIT_SSH_COMMAND
-    export GIT_AUTOSYNC_REPO_LOCAL_PATH
 
     to_sync_dir || return $?
 
@@ -145,8 +149,11 @@ function prepare() {
     fi
 
     back_to_working_dir || return $?
+
     export GIT_AUTOSYNC_REPO_BRANCH
     export GIT_AUTOSYNC_REPO_URL
+    export GIT_SSH_COMMAND
+    export GIT_AUTOSYNC_REPO_LOCAL_PATH
 }
 
 function check_and_clone() {
