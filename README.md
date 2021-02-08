@@ -30,6 +30,8 @@ Sync the git_autosync repo itself into /tmp/sync
 ./src/run /tmp/sync -r  git@github.com:LamaAni/git_autosync.git
 ```
 
+For an example of how to use in kubernetes see [kubernetes_website_sidecar_autosync.yaml](examples/kubernetes_website_sidecar_autosync.yaml)
+
 # Install
 
 Downloads and installs from latest release,
