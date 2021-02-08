@@ -37,4 +37,8 @@ jobs:
           release-tag: "${{steps.args.outputs.version}}"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name
+      - name: "Build/push docker image"
+        run: bash docker/build
+        env:
+          DO_PUSH: "${{ steps.args.outputs.is_release }}"
+          TAGS: "latest ${{ steps.args.outputs.versions }}"
