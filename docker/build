@@ -27,9 +27,9 @@ ARGS:
   --repository  The remote repository to use (Defaults to lamaani/git_autosync)
 "
 
-DO_PUSH=0
+: "${DO_PUSH="false"}"
 : "${REPOSITORY:="lamaani/git_autosync"}"
-TAGS=(latest)
+TAGS=()
 MAIN_LABEL="local"
 DOCKER_ARGS=()
 
@@ -39,17 +39,16 @@ while [ "$#" -gt 0 ]; do
     log:help "$HELP"
     return 0
     ;;
-  --push)
-    DO_PUSH=1
-    MAIN_LABEL="latest"
+  -p | --push)
+    DO_PUSH="true"
+    ;;
+  -t | --tag)
+    shift
+    TAGS+=($1)
     ;;
   --repository)
     shift
     REPOSITORY="$1"
-    ;;
-  --tag)
-    shift
-    TAGS+=($1)
     ;;
   --docker-arg)
     shift
@@ -72,5 +71,38 @@ done
 : "${GIT_AUTOSYNC_VERSION:="latest"}"
 log:sep "Running docker build @ $REPO_PATH"
 docker build "${DOCKER_ARGS[@]}" \
-  --build-arg "GIT_AUTOSYNC_VERSION=\"$GIT_AUTOSYNC_VERSION\"" \
+  --build-arg "GIT_AUTOSYNC_VERSION=$GIT_AUTOSYNC_VERSION" \
   -f "$REPO_PATH/docker/Dockerfile" "$REPO_PATH" -t "$REPOSITORY:$MAIN_LABEL"
+assert $? "Docker build failed" || exit $?
+
+COMPOSED_TAGS=()
+for tag in "${TAGS[@]}"; do
+  if [ -n "$(trim "$tag")" ]; then
+    COMPOSED_TAGS+=("$REPOSITORY:$tag")
+  fi
+done
+
+if [ "${#COMPOSED_TAGS[@]}" -gt 0 ]; then
+  log "Tagging with:"$'\n -'" $(join_by $'\n - ' "${COMPOSED_TAGS[@]}")"
+  for tag in "${COMPOSED_TAGS[@]}"; do
+    docker tag "$REPOSITORY:$MAIN_LABEL" "$tag"
+    assert $? "Failed to tag $tag" || exit $?
+  done
+  log "Tagging complete"
+fi
+
+function do_push() {
+  [ "${#COMPOSED_TAGS[@]}" -gt 0 ]
+  warn $? "Cannot push tags since no tags were defined. Skipping push" || return $?
+  log "Pushing tags to remote.."
+  for tag in "${COMPOSED_TAGS[@]}"; do
+    docker push "$tag"
+    assert $? "Failed to push to remote" || exit $?
+  done
+}
+
+if [ "$DO_PUSH" == "true" ]; then
+  do_push
+fi
+
+log "Build complete"

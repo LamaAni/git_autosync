@@ -56,7 +56,7 @@ function install() {
   fi
   GET_SCRIPT_URL="$REPO_RAW_URL/$URL_BRANCH/get?v_$(date +"%S")=$RANDOM"
   curl -sL "$GET_SCRIPT_URL" | bash -s "$GIT_AUTOSYNC_VERSION" >"$GIT_AUTOSYNC_TEMP_PATH"
-  assert $? "Failed to download GIT_AUTOSYNC compiled script" || return $?
+  assert $? "Failed to download GIT_AUTOSYNC compiled script from $GET_SCRIPT_URL" || return $?
 
   log:sep "Installing git_autosync as $(whoami)"
   log "Checking required premissions"

@@ -36,3 +36,5 @@ jobs:
           files: "git_autosync.sh"
           release-tag: "${{steps.args.outputs.version}}"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name
