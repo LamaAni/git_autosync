@@ -1,5 +1,4 @@
-name: "Compile scripts"
-
+name: "Compile and build docker image"
 on:
   pull_request:
     branches:
@@ -19,9 +18,25 @@ jobs:
       - name: "Read commit args"
         id: args
         uses: LamaAni/parse-commit-args-action@master
+        env:
+          RUN_SCRIPT: |
+            args.main_tag = args.is_release ? "latest " : ""
+
+      - name: "Print the args"
+        run: echo "$THE_ARGS"
+        env:
+          THE_ARGS: "${{toJSON(steps.args.outputs)}}"
 
       - name: "Checkout the code"
         uses: actions/checkout@v2
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        # Ignore the failure of a step and avoid terminating the job.
+        continue-on-error: ${{ steps.args.outputs.is_release!='true' }}
+        with:
+          key: git-autosync-build-cache-${{steps.args.outputs.version}}
+          restore-keys: |
+            git-autosync-build-cache
 
       - name: "Compile the code"
         id: compile
@@ -36,3 +51,11 @@ jobs:
           files: "git_autosync.sh"
           release-tag: "${{steps.args.outputs.version}}"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Build/push docker image"
+        run: bash docker/build
+        env:
+          DO_PUSH: "${{ steps.args.outputs.is_release }}"
+          TAGS: "${{ steps.args.outputs.main_tag }}${{ join(steps.args.outputs.versions,' ') }}"
+          DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+          DOCKER_ACCESS_TOKEN: "${{ secrets.DOCKER_ACCESS_TOKEN }}"
