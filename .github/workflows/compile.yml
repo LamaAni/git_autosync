@@ -57,8 +57,5 @@ jobs:
         env:
           DO_PUSH: "${{ steps.args.outputs.is_release }}"
           TAGS: "${{ steps.args.outputs.main_tag }}${{ join(steps.args.outputs.versions,' ') }}"
-<<<<<<< HEAD
           DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
           DOCKER_ACCESS_TOKEN: "${{ secrets.DOCKER_ACCESS_TOKEN }}"
-=======
->>>>>>> 63c1cbd51dd44b3a8fc84ea84e8a6dac3ca0608f
