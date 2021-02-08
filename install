@@ -56,7 +56,6 @@ function install() {
     URL_BRANCH="master"
   fi
   GET_SCRIPT_URL="$REPO_RAW_URL/$URL_BRANCH/get?v_$(date +"%S")=$RANDOM"
-  echo "$GET_SCRIPT_URL"
   curl -sL "$GET_SCRIPT_URL" | bash -s "$GIT_AUTOSYNC_VERSION" >"$GIT_AUTOSYNC_TEMP_PATH"
   assert $? "Failed to download GIT_AUTOSYNC compiled script" || return $?
 

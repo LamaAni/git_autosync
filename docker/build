@@ -1,0 +1,76 @@
+#!/bin/bash
+
+type zbash_commons &>/dev/null
+if [ $? -ne 0 ]; then
+  echo "[DOWNLOAD] Downloading zbash_commons from latest release.."
+  ZBASH_COMMONS_GET_SCRIPT="$(curl -Ls "https://raw.githubusercontent.com/LamaAni/zbash-commons/master/get?ts_$(date +%s)=$RANDOM")"
+  ZBASH_COMMONS="$(bash -c "$ZBASH_COMMONS_GET_SCRIPT")"
+  eval "$ZBASH_COMMONS"
+else
+  ZBASH_COMMONS="$(cat "$(which zbash_commons)")"
+  source zbash_commons
+fi
+
+REPO_PATH="$(dirname $(dirname ${BASH_SOURCE[0]}))"
+
+HELP="
+
+Build the git_autosync image
+
+USAGE: build [version] [..options]
+INPUT:
+  [version]   The git autosync version to build (Defaults to latest)
+ARGS:
+  -p | --push   Push the image to the remote.
+  -t | --tag    Add a custom tag.
+  --docker-arg  Add a docker arg.
+  --repository  The remote repository to use (Defaults to lamaani/git_autosync)
+"
+
+DO_PUSH=0
+: "${REPOSITORY:="lamaani/git_autosync"}"
+TAGS=(latest)
+MAIN_LABEL="local"
+DOCKER_ARGS=()
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+  --help | -h)
+    log:help "$HELP"
+    return 0
+    ;;
+  --push)
+    DO_PUSH=1
+    MAIN_LABEL="latest"
+    ;;
+  --repository)
+    shift
+    REPOSITORY="$1"
+    ;;
+  --tag)
+    shift
+    TAGS+=($1)
+    ;;
+  --docker-arg)
+    shift
+    DOCKER_ARGS+=($1)
+    ;;
+  -*)
+    assert 2 "Invalid argument $1" || exit $?
+    ;;
+  *)
+    if [ -z "$GIT_AUTOSYNC_VERSION" ]; then
+      GIT_AUTOSYNC_VERSION="$1"
+    else
+      assert 2 "Invalid input: $1" || exit $?
+    fi
+    ;;
+  esac
+  shift
+done
+
+: "${GIT_AUTOSYNC_VERSION:="latest"}"
+log:sep "Running docker build @ $REPO_PATH"
+docker build "${DOCKER_ARGS[@]}" \
+  --build-arg "GIT_AUTOSYNC_VERSION=\"$GIT_AUTOSYNC_VERSION\"" \
+  -f "$REPO_PATH/docker/Dockerfile" "$REPO_PATH" -t "$REPOSITORY:$MAIN_LABEL"
