@@ -19,6 +19,9 @@ jobs:
       - name: "Read commit args"
         id: args
         uses: LamaAni/parse-commit-args-action@master
+        env:
+          RUN_SCRIPT: |
+            args.main_tag = args.is_release ? "latest " : ""
 
       - name: "Print the args"
         run: echo "$THE_ARGS"
@@ -54,4 +57,4 @@ jobs:
         run: bash docker/build
         env:
           DO_PUSH: "${{ steps.args.outputs.is_release }}"
-          TAGS: "${{ steps.args.outputs.is_release==true ? 'latest ' ''}}${{ join(steps.args.outputs.versions,' ') }}"
+          TAGS: "${{ steps.args.outputs.main_tag }}${{ join(steps.args.outputs.versions,' ') }}"
