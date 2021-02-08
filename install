@@ -1,8 +1,7 @@
 #!/bin/bash
-
 type curl &>/dev/null
 if [ $? -ne 0 ]; then
-  echo "Curl must be installed"
+  echo "Curl must be installed" || exit $?
 fi
 
 type zbash_commons &>/dev/null
@@ -56,9 +55,8 @@ function install() {
     URL_BRANCH="master"
   fi
   GET_SCRIPT_URL="$REPO_RAW_URL/$URL_BRANCH/get?v_$(date +"%S")=$RANDOM"
-  echo "$GET_SCRIPT_URL"
   curl -sL "$GET_SCRIPT_URL" | bash -s "$GIT_AUTOSYNC_VERSION" >"$GIT_AUTOSYNC_TEMP_PATH"
-  assert $? "Failed to download GIT_AUTOSYNC compiled script" || return $?
+  assert $? "Failed to download GIT_AUTOSYNC compiled script from $GET_SCRIPT_URL" || return $?
 
   log:sep "Installing git_autosync as $(whoami)"
   log "Checking required premissions"
