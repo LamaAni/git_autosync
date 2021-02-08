@@ -1,8 +1,7 @@
 #!/bin/bash
-
 type curl &>/dev/null
 if [ $? -ne 0 ]; then
-  echo "Curl must be installed"
+  echo "Curl must be installed" || exit $?
 fi
 
 type zbash_commons &>/dev/null
