@@ -7,7 +7,7 @@ if [ $? -ne 0 ]; then
   ZBASH_COMMONS="$(bash -c "$ZBASH_COMMONS_GET_SCRIPT")"
   eval "$ZBASH_COMMONS"
 else
-  ZBASH_COMMONS="$(cat "$(which zbash_commons))")"
+  ZBASH_COMMONS="$(cat "$(which zbash_commons)")"
   source zbash_commons
 fi
 
