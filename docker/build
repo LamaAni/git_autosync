@@ -32,6 +32,7 @@ ARGS:
 MAIN_LABEL="local"
 DOCKER_ARGS=($DOCKER_ARGS)
 TAGS=($TAGS)
+: "${DOCKER_CACHE_FOLDER=""}"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in

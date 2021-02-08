@@ -23,6 +23,14 @@ jobs:
       - name: "Checkout the code"
         uses: actions/checkout@v2
 
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        # Ignore the failure of a step and avoid terminating the job.
+        continue-on-error: ${{ steps.args.outputs.is_release!='true' }}
+        with:
+          key: git-autosync-build-cache-${{steps.args.outputs.version}}
+          restore-keys: |
+            git-autosync-build-cache
+
       - name: "Compile the code"
         id: compile
         run: bash src/ci/compile_scripts
