@@ -196,9 +196,9 @@ function check_and_clone() {
 function get_change_list() {
   to_sync_dir || return $?
 
-  remote_update_log="$(git remote update)"
   newline=$'\n'
-  warn "$?" "Failed to update from remote: $newline$remote_update_log $newline (ignored) Proceeding to next attempt" || return 0
+  remote_update_log="$(git remote update)"
+  assert "$?" "Failed to update from remote: $newline$remote_update_log $newline (ignored) Proceeding to next attempt" || return 0
 
   file_difs="$(git diff "$GIT_AUTOSYNC_REPO_BRANCH" "origin/$GIT_AUTOSYNC_REPO_BRANCH" --name-only)"
   assert $? "Field to execute git diff when retriving change list: $file_difs" || return $?
