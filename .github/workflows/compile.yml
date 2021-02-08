@@ -54,4 +54,4 @@ jobs:
         run: bash docker/build
         env:
           DO_PUSH: "${{ steps.args.outputs.is_release }}"
-          TAGS: "latest ${{ steps.args.outputs.versions.join(' ') }}"
+          TAGS: "latest ${{ steps.args.outputs.version }}"
