@@ -1,62 +1,59 @@
 # git_autosync script
 
-A bash script for autosync of a git repo to a local machine.
+A bash script and docker image for auto-syncing of a git repo.
 
-The scripts allows for the continues update of a git repo, to a local folder, with a
-minimal time delay of 1 second. This script dose not require the use of a git repo plugin
-or app, and is based on bash and git commands alone.
+The scripts allows for the continues update of a git repo, to folder, with a
+minimal time delay of 1 second.
+
+#### Remember, if you like it, star it, so other people would also use it.
+
+# BETA
 
 #### Contributors are welcome :)
 
 # Requirements
-1. [bash shell](https://en.wikipedia.org/wiki/Bash_(Unix_shell))
-2. [git](https://git-scm.com/)
-3. A cloned git repo.
 
-# Use as a script
+1. [bash shell](<https://en.wikipedia.org/wiki/Bash_(Unix_shell)>)
+2. [git](https://git-scm.com/)
+
+# TL;DR
+
+For inline help use,
+
 ```shell
-bash> git_autosync [args] ...
+git_autosync --help
 ```
 
-# Use as a source library
+Sync the git_autosync repo itself into /tmp/sync
+
 ```shell
-#!/usr/bin/env bash
-# notice no arguments passed.
-source "[somepath]/git_autosync" --as-lib
+./src/run /tmp/sync -r  git@github.com:LamaAni/git_autosync.git
 ```
 
 # Install
 
-## using curl
-```shell
+Downloads and installs from latest release,
 
+```shell
+curl -Ls "https://raw.githubusercontent.com/LamaAni/git_autosync/master/install?ts_$(date +%s)=$RANDOM" | sudo bash
 ```
 
+# Environment variables
 
-# Usage and arguments
-
-argument name | description | default value
+name | description | default value
 ---|---|---
-[sync-path]     | The path to the repo. | current folder
--r, --repo-url   | The repo url, example: `git@github.com:LamaAni/git_autosync.git`  | the repo in the sync-path
--b, --branch     | The name of the branch | the active branch in the sync-path
--n, --max-times  | Max Number of sync times. -1 for infinity. | -1
--i, --interval   | The time interval to use in seconds | 5 seconds
--a, --async      | Syncs in background after validating the repo connection | true if flag exists
---sync-command  | The git sync command to use. | git pull
---as-lib        | Load the current file as a library function. Dose not allow any other arguments. | true if flag exists
--h, --help       | Help menu
-
-Env name | description | default value
----|---|---
-GIT_AUTOSYNC_LOGPREFEX | The log prefex for git_autosync. Will be printed before and sync logs. | GIT_AUTOSYNC:
-
-# Notes
-
-Mostly, I use this script to sync my repo to remote machines, when deploying a web service of 
-some sorts. There are more agile and better solutions, but I find that this simple approach is very powerful.
-
-If there is more interest in this script I will add installs, releases and requested functionality.
+GIT_AUTOSYNC_REPO_LOCAL_PATH | The local path to the repo | `required!` or inline
+GIT_AUTOSYNC_REPO_URL | The remote repo, will use the repo in the local path if not found.
+GIT_AUTOSYNC_SSH_KEY | The ssh key to use. (private key) | empty
+GIT_AUTOSYNC_SSH_KEY_PATH | The path to the ssh key to use. (private key) | empty
+GIT_AUTOSYNC_REPO_BRANCH | The repo branch to use | master
+GIT_AUTOSYNC_MAX_SYNC_RUN_COUNT | How many times to sync | -1 = infinity, 0 = just clone
+GIT_AUTOSYNC_INTERVAL | The sync interval (seconds) | 5
+GIT_AUTOSYNC_SYNC_COMMAND | The sync command to use | `git pull`
+GIT_AUTOSYNC_RUN_ASYNC | If 1 then run the sync_loop in a different thread, will exist the process | 0
+GIT_AUTOSYNC_CHECK_HOSTS | If 1 then the git host must be listed in the known_hosts | 0
+GIT_AUTOSYNC_RUN_DO_CLONE | If 1, then try clone if dose not exist | 1
+GIT_AUTOSYNC_ARGS | Extra args, space/newline delimited | empty
 
 # Licence
 

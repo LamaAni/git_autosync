@@ -13,4 +13,8 @@ fi
 URL="$URL/git_autosync.sh?v_$(date +"%S")=$RANDOM"
 
 SCRIPT="$(curl -sL "$URL")"
+if [ "$SCRIPT" == "Not Found" ]; then
+    echo 1>&2 "Cloud not find script @ $URL"
+    exit 1
+fi
 printf "%s" "$SCRIPT"

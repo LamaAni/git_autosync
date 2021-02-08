@@ -60,9 +60,6 @@ function install() {
   curl -sL "$GET_SCRIPT_URL" | bash -s "$GIT_AUTOSYNC_VERSION" >"$GIT_AUTOSYNC_TEMP_PATH"
   assert $? "Failed to download GIT_AUTOSYNC compiled script" || return $?
 
-  source "$GIT_AUTOSYNC_TEMP_PATH"
-  assert $? "Failed to load GIT_AUTOSYNC script, error in script?" || return $?
-
   log:sep "Installing git_autosync as $(whoami)"
   log "Checking required premissions"
   if [ "$(whoami)" != "root" ]; then
