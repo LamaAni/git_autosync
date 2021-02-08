@@ -20,6 +20,11 @@ jobs:
         id: args
         uses: LamaAni/parse-commit-args-action@master
 
+      - name: "Print the args"
+        run: echo "$THE_ARGS"
+        env:
+          THE_ARGS: "${{toJSON(steps.args.outputs)}}"
+
       - name: "Checkout the code"
         uses: actions/checkout@v2
 
