@@ -69,7 +69,7 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-if [ -z "$DOCKER_USERNAME" ]; then
+if [ -n "$DOCKER_USERNAME" ]; then
   log:sep "Login to docker"
   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_ACCESS_TOKEN"
   assert $? "Failed to login" || exit $?
