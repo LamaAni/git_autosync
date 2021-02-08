@@ -1,0 +1,23 @@
+#!/bin/bash
+: "${SCRIPTS_PATH:="$(dirname "${BASH_SOURCE[0]}")"}"
+
+TEMP_SCRIPT_FILE="$(mktemp /tmp/git_autosync-XXXXXX.sh)"
+
+function compile_and_run() {
+  export OUTPUT_FILE="$TEMP_SCRIPT_FILE"
+  source "$SCRIPTS_PATH/ci/compile_scripts"
+  assert $? "Failed to compile scripts" || return $?
+
+  bash "$TEMP_SCRIPT_FILE" "$@"
+}
+
+function cleanup() {
+  local code="$1"
+  shift
+  # rm -rf "$TEMP_SCRIPT_FILE"
+  # warn $? "Failed to remove temp file"
+  assert $code "$@" || return "$code"
+}
+
+compile_and_run "$@"
+cleanup $?

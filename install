@@ -1,0 +1,95 @@
+#!/bin/bash
+
+type curl &>/dev/null
+if [ $? -ne 0 ]; then
+  echo "Curl must be installed"
+fi
+
+type zbash_commons &>/dev/null
+if [ $? -ne 0 ]; then
+  echo "[DOWNLOAD] Downloading zbash_commons from latest release.."
+  ZBASH_COMMONS_GET_SCRIPT="$(curl -Ls "https://raw.githubusercontent.com/LamaAni/zbash-commons/master/get?ts_$(date +%s)=$RANDOM")"
+  ZBASH_COMMONS="$(bash -c "$ZBASH_COMMONS_GET_SCRIPT")"
+  eval "$ZBASH_COMMONS"
+else
+  source zbash_commons
+fi
+
+HELP="
+Installs git_autosync
+
+USAGE: Install [release]
+INOPUT:
+  release         The release to install (default: latest)
+"
+
+while [ "$#" -gt 0 ]; do
+  case $1 in
+  -h | --help)
+    log:help "$HELP"
+    exit 0
+    ;;
+  -*)
+    assert 2 "Invalid argument: $1"
+    ;;
+  *)
+    if [ -z "$GIT_AUTOSYNC_VERSION" ]; then
+      GIT_AUTOSYNC_VERSION="$1"
+    else
+      assert 2 "Unknown input: $1"
+    fi
+    ;;
+  esac
+  shift
+done
+
+: "${GIT_AUTOSYNC_VERSION:="latest"}"
+: "${GIT_AUTOSYNC_SOURCE_COMMAND_LOCATION:="/usr/bin/git_autosync"}"
+
+# ------------------
+REPO_RAW_URL="https://raw.githubusercontent.com/LamaAni/git_autosync"
+GIT_AUTOSYNC_TEMP_PATH="$(mktemp /tmp/git_autosync-script-XXXX.sh)"
+
+function install() {
+  URL_BRANCH="$GIT_AUTOSYNC_VERSION"
+  if [ "$URL_BRANCH" == "latest" ]; then
+    URL_BRANCH="master"
+  fi
+  GET_SCRIPT_URL="$REPO_RAW_URL/$URL_BRANCH/get?v_$(date +"%S")=$RANDOM"
+  echo "$GET_SCRIPT_URL"
+  curl -sL "$GET_SCRIPT_URL" | bash -s "$GIT_AUTOSYNC_VERSION" >"$GIT_AUTOSYNC_TEMP_PATH"
+  assert $? "Failed to download GIT_AUTOSYNC compiled script" || return $?
+
+  source "$GIT_AUTOSYNC_TEMP_PATH"
+  assert $? "Failed to load GIT_AUTOSYNC script, error in script?" || return $?
+
+  log:sep "Installing git_autosync as $(whoami)"
+  log "Checking required premissions"
+  if [ "$(whoami)" != "root" ]; then
+    log "checking if sudo is available..."
+    type sudo >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+      warn 2 "Sudo not found. Attempting to install with user $(whoami)"
+    else
+      assert 2 "Sudo found, please rerun as root" || return $?
+    fi
+  fi
+
+  if [ -f "$GIT_AUTOSYNC_SOURCE_COMMAND_LOCATION" ]; then
+    rm -rf "$GIT_AUTOSYNC_SOURCE_COMMAND_LOCATION"
+    assert $? "Failed to remove old code" || return $?
+  fi
+
+  log "Downloading.."
+
+  cat "$GIT_AUTOSYNC_TEMP_PATH" >"$GIT_AUTOSYNC_SOURCE_COMMAND_LOCATION" && chmod +x "$GIT_AUTOSYNC_SOURCE_COMMAND_LOCATION"
+  log "Installed OK -> $GIT_AUTOSYNC_SOURCE_COMMAND_LOCATION ($(wc -l $GIT_AUTOSYNC_SOURCE_COMMAND_LOCATION) lines)"
+}
+
+function cleanup() {
+  local code=$?
+  assert "$code" || return $code
+}
+
+install
+cleanup $? "Failed to install" || exit $?

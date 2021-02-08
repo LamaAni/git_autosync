@@ -1,0 +1,30 @@
+#!/bin/bash
+
+type zbash_commons &>/dev/null
+if [ $? -ne 0 ]; then
+  echo "[DOWNLOAD] Downloading zbash_commons from latest release.."
+  ZBASH_COMMONS_GET_SCRIPT="$(curl -Ls "https://raw.githubusercontent.com/LamaAni/zbash-commons/master/get?ts_$(date +%s)=$RANDOM")"
+  ZBASH_COMMONS="$(bash -c "$ZBASH_COMMONS_GET_SCRIPT")"
+  eval "$ZBASH_COMMONS"
+else
+  ZBASH_COMMONS="$(cat "$(which zbash_commons))")"
+  source zbash_commons
+fi
+
+: "${SCRIPTS_PATH:="$(dirname "${BASH_SOURCE[0]}")/.."}"
+: "${OUTPUT_FILE:="$1"}"
+: "${OUTPUT_FILE:="$(mktemp /tmp/git_autosync-compiled-XXXXXXX.sh)"}"
+log:sep "Compiling sources to $OUTPUT_FILE"
+
+function compile_scripts() {
+  local compiled=("$ZBASH_COMMONS")
+  for file in $SCRIPTS_PATH/scripts/*; do
+    compiled+=("$(cat $file)")
+    assert $? "Error while loading lib file: $file" || return $?
+  done
+  printf "%s" "$(join_by $'\n' "${compiled[@]}")"
+}
+
+compile_scripts >|"$OUTPUT_FILE"
+assert $? "Failed to compile scripts" &&
+  log "Compilation complete with $(wc -l "$OUTPUT_FILE")"
