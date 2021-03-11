@@ -58,6 +58,7 @@ GIT_AUTOSYNC_RUN_ASYNC | If 1 then run the sync_loop in a different thread, will
 GIT_AUTOSYNC_CHECK_HOSTS | If 1 then the git host must be listed in the known_hosts | 0
 GIT_AUTOSYNC_RUN_DO_CLONE | If 1, then try clone if dose not exist | 1
 GIT_AUTOSYNC_ARGS | Extra args, space/newline delimited | empty
+GIT_AUTOSYNC_FAIL_ON_NO_BRANCH | If 1,  will fail when no branch is available. (Tag for example) | 0
 
 # Licence
 

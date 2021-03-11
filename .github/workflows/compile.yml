@@ -19,6 +19,7 @@ jobs:
         id: args
         uses: LamaAni/parse-commit-args-action@master
         env:
+          
           RUN_SCRIPT: |
             args.main_tag = args.is_release ? "latest " : ""
 

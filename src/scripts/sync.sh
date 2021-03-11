@@ -17,11 +17,12 @@ ARGS:
     --sync-command      The git sync command to use. (defaults to 'git pull')
     --git-arg           Add a git argument.
 FLAGS:
-    -a --async      If flag exists, syncs in background after first successful sync
-    -h --help       Show this help menu.
-    --no-clone      Do not clone the repo if dose not exist.
-    --check-hosts   Disable to auto allow all hosts. Removes man in the middle vonrability,
-                    but will require you to update the known_hosts.
+    -a --async        If flag exists, syncs in background after first successful sync
+    -h --help         Show this help menu.
+    --fail-no-branch  Fail if this is not a branch (detached head or tag)
+    --no-clone        Do not clone the repo if dose not exist.
+    --check-hosts     Disable to auto allow all hosts. Removes man in the middle vonrability,
+                      but will require you to update the known_hosts.
 ENVS:
     GIT_AUTOSYNC_LOGPREFEX  The git sync log prefex, (apperas before the log),
                             Allowes for stack tracing.
@@ -40,6 +41,7 @@ ENVS:
 : "${GIT_AUTOSYNC_RUN_ASYNC:=0}"
 : "${GIT_AUTOSYNC_CHECK_HOSTS:=0}"
 : "${GIT_AUTOSYNC_RUN_DO_CLONE:=1}"
+: "${GIT_AUTOSYNC_FAIL_ON_NO_BRANCH:=0}"
 : "${GIT_AUTOSYNC_ARGS:=""}"
 
 # loading varaibles.
@@ -86,6 +88,9 @@ while [ $# -gt 0 ]; do
   --git-arg)
     shift
     GIT_AUTOSYNC_ARGS+=($1)
+    ;;
+  --fail-no-branch)
+    GIT_AUTOSYNC_FAIL_ON_NO_BRANCH=1
     ;;
   -*)
     assert 2 "Unknown identifier $1" || return $?
@@ -162,8 +167,12 @@ function prepare() {
     fi
   fi
 
+  function get_git_current_branch() {
+    git rev-parse --abbrev-ref HEAD 2>/dev/null
+  }
+
   if [ -z "$GIT_AUTOSYNC_REPO_BRANCH" ]; then
-    GIT_AUTOSYNC_REPO_BRANCH="$(git 2>/dev/null rev-parse --abbrev-ref HEAD)"
+    GIT_AUTOSYNC_REPO_BRANCH="$(get_git_current_branch)"
     if [ -z "$GIT_AUTOSYNC_REPO_BRANCH" ]; then
       GIT_AUTOSYNC_REPO_BRANCH="master"
     fi
@@ -258,6 +267,21 @@ function sync_loop() {
 
 # Script to auto sync a git repo dag.
 function start_sync() {
+  to_sync_dir || return $?
+
+  get_git_current_branch
+  local current_branch="$(get_git_current_branch)"
+  assert $? "Failed to retrive current branch" || return $?
+
+  [ "$current_branch" != "HEAD" ]
+  local code=$?
+
+  if [ "$GIT_AUTOSYNC_FAIL_ON_NO_BRANCH" -eq 1 ]; then
+    assert $code "No active sync availeable. $current_branch is not a branch. Autosync exited." || return 0
+  else
+    warn $code "No active sync availeable. $current_branch is not a branch." || return 0
+  fi
+
   # first attempt to pull
   get_change_list
   assert $? "Failed to initialize remote repo autosync @ $GIT_AUTOSYNC_REPO_URL $GIT_AUTOSYNC_REPO_BRANCH to $GIT_AUTOSYNC_REPO_LOCAL_PATH" || return $?
@@ -267,7 +291,10 @@ function start_sync() {
     sync_loop &
   else
     sync_loop
+    assert $? "Sync loop failed" || return $?
   fi
+
+  return 0
 }
 
 function cleanup() {
