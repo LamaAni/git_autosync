@@ -269,7 +269,6 @@ function sync_loop() {
 function start_sync() {
   to_sync_dir || return $?
 
-  get_git_current_branch
   local current_branch="$(get_git_current_branch)"
   assert $? "Failed to retrive current branch" || return $?
 
