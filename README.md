@@ -27,7 +27,7 @@ git_autosync --help
 Sync the git_autosync repo itself into /tmp/sync
 
 ```shell
-./src/run /tmp/sync -r  git@github.com:LamaAni/git_autosync.git
+git_autosync /tmp/sync -r  git@github.com:LamaAni/git_autosync.git
 ```
 
 # Usage in Kubernetes
